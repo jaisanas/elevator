@@ -51,7 +51,7 @@ Elevator.prototype.decide = function() {
     
     var elevator = this;
     var people = this.get_people();
-    var person = people.length > 0 ? people[0] : undefined;
+    //var person = people.length > 0 ? people[0] : undefined;
     
     if(elevator) {
         elevator.at_floor();
@@ -59,12 +59,114 @@ Elevator.prototype.decide = function() {
         elevator.get_position();
     }
     
-    if(person) {
-        person.get_floor();
-        return this.commit_decision(person.get_destination_floor());
-    }
-    
-    for(var i = 0;i < requests.length;i++) {
+	var elevator_people = elevator.get_people();
+	if(people.length > 0 && elevator_people.length > 0) {
+		var x = 0;
+		var elevator_person;
+		var elevator_person2 = elevator_people[0];
+		for(var i = 0; i < elevator_people.length; i++) {
+			if(elevator_people[x]) {
+				elevator_person = elevator_people[i];
+				if(elevator_person && elevator.at_floor()) {
+					//elevator_person.get_floor();
+					if(Math.abs(elevator_person.get_destination_floor() - elevator.at_floor) < Math.abs(elevator_person2.get_destination_floor() - elevator.at_floor)) {
+						x = i;
+						var elevator_personTemp = elevator_people[x];
+						if(elevator_personTemp) {
+							elevator_person2 = elevator_personTemp;
+						}
+					}
+				}
+			}else {
+				elevator_person = undefined;
+			}
+		}
+		
+		
+		var y = 0;
+		var person;
+		var person2 = people[0];
+		for(var i = 0; i < people.length; i++) {
+			if(people[i]) {
+				person = people[i];
+				if(person && elevator.at_floor()) {
+					person.get_floor();
+					if(Math.abs(person.get_floor() - elevator.at_floor()) < Math.abs(person2.get_floor() - elevator.at_floor())) {
+						y = i;
+						var personTemp = people[y];
+						if(personTemp) {
+							person2 = personTemp;
+						}
+					}
+				}
+			}else {
+				person = undefined;
+			}
+		}
+
+		if(elevator_person2 && person2 && elevator.at_floor()) {
+			if(Math.abs(elevator.at_floor() - elevator_person2.get_destination_floor()) > (Math.abs(elevator.at_floor() - person2.get_floor()) + Math.abs(person2.get_floor() - person2.get_destination_floor()))) {
+				person2.get_floor();
+				return this.commit_decision(person2.get_destination_floor());
+			}else {
+				return this.commit_decision(elevator_person2.get_destination_floor());
+			}
+		}
+	} else if(people.length > 0 || elevator_people.length > 0) {
+     if(people.length > 0) {
+		var x = 0;
+		var person;
+		var person2 = people[0];
+		for(var i = 0; i < people.length; i++) {
+			if(people[i]) {
+				person = people[i];
+				if(person && elevator.at_floor()) {
+					person.get_floor();
+					if(Math.abs(person.get_floor() - elevator.at_floor()) < Math.abs(person2.get_floor() - elevator.at_floor())) {
+						x = i;
+						var personTemp = people[x];
+						if(personTemp) {
+							person2 = personTemp;
+						}
+					}
+				}
+			}else {
+				person = undefined;
+			}
+		}
+		
+		if(person2) {
+			person2.get_floor();
+			return this.commit_decision(person2.get_destination_floor());
+		}
+	} 
+	
+	 if(elevator_people.length > 0) {
+		var x = 0;
+		var elevator_person;
+		var elevator_person2 = elevator_people[0];
+		for(var i = 0; i < elevator_people.length; i++) {
+			if(elevator_people[x]) {
+				elevator_person = elevator_people[i];
+				if(elevator_person && elevator.at_floor()) {
+					//elevator_person.get_floor();
+					if(Math.abs(elevator_person.get_destination_floor() - elevator.at_floor) < Math.abs(elevator_person2.get_destination_floor() - elevator.at_floor)) {
+						x = i;
+						var elevator_personTemp = elevator_people[x];
+						if(elevator_personTemp) {
+							elevator_person2 = elevator_personTemp;
+						}
+					}
+				}
+			}else {
+				elevator_person = undefined;
+			}
+		}
+		return this.commit_decision(elevator_person2.get_destination_floor());
+	  }
+	} else if(people.length < 0 && elevator_people.length < 0) {
+		if(requests.length > 0) {
+		for(var i = 0;i < requests.length;i++) {
         var handled = false;
         for(var j = 0;j < elevators.length;j++) {
             if(elevators[j].get_destination_floor() == requests[i]) {
@@ -75,7 +177,12 @@ Elevator.prototype.decide = function() {
         if(!handled) {
             return this.commit_decision(requests[i]);
         }
-    }
-
-    return this.commit_decision(Math.floor(num_floors / 2));
+     }
+	}
+   }
+	if(elevator.at_floor() + 1 < num_floors) {
+		return this.commit_decision(elevator.at_floor() + 1);
+	}else if (elevator.at_floor() - 1 > 1){
+		return this.commit_decision(elevator.at_floor() - 1);
+	}
 };
